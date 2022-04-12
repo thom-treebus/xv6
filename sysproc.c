@@ -7,10 +7,44 @@
 #include "mmu.h"
 #include "proc.h"
 
+static pte_t *
+walkpgdir(pde_t *pgdir, const void *va, int alloc)
+{
+  pde_t *pde;
+  pte_t *pgtab;
+
+  pde = &pgdir[PDX(va)];
+  if(*pde & PTE_P){
+    pgtab = (pte_t*)P2V(PTE_ADDR(*pde));
+  } else {
+    if(!alloc || (pgtab = (pte_t*)kalloc()) == 0)
+      return 0;
+    memset(pgtab, 0, PGSIZE);
+    *pde = V2P(pgtab) | PTE_P | PTE_W | PTE_U;
+  }
+  return &pgtab[PTX(va)];
+}
+
+int
+sys_mprotect(void *addr, int len) 
+{
+  struct proc *curproc = myproc();
+  void *pgdir = curproc->pgdir;
+  for (int i = 0; i < len; ++i) {
+    pte_t *pt = walkpgdir(pgdir, addr, 0);
+    int ipt = (int) pt;
+    cprintf("number %d", ipt);
+    ipt^= 0x002;
+    cprintf("number %d", ipt);
+    ++addr;
+  }
+  return 12;
+}
+
  int
  sys_hello(void) {
-    cprintf("Hello world!\n");
-    return 12;
+  cprintf("Hello world!\n");
+  return 12;
  }
 
 int
