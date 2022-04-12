@@ -193,6 +193,7 @@ UPROGS := \
 	_zombie\
 	_hello\
 	_mprotect\
+	_munprotect\
 
 fs.img: mkfs README $(UPROGS)
 	./mkfs fs.img README $(UPROGS)

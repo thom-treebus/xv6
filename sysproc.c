@@ -33,10 +33,22 @@ sys_mprotect(void *addr, int len)
   for (int i = 0; i < len; ++i) {
     pte_t *pt = walkpgdir(pgdir, addr, 0);
     int ipt = (int) pt;
-    cprintf("number %d", ipt);
-    ipt^= 0x002;
-    cprintf("number %d", ipt);
-    ++addr;
+    ipt |= 0x002; // set the writeble value
+    ++addr; // increment address 
+  }
+  return 12;
+}
+
+int
+sys_munprotect(void *addr, int len) 
+{
+  struct proc *curproc = myproc();
+  void *pgdir = curproc->pgdir;
+  for (int i = 0; i < len; ++i) {
+    pte_t *pt = walkpgdir(pgdir, addr, 0);
+    int ipt = (int) pt;
+    ipt &= ~(0x002); // clear the writeble value
+    ++addr; // increment address 
   }
   return 12;
 }
